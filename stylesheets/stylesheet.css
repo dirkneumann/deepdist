@@ -85,12 +85,12 @@ header h2 {
 }
 
 #container {
-  background: transparent url(../images/highlight-bg.jpg) 50% 0 no-repeat;
+  background: white;
   min-height: 595px;
 }
 
 .inner {
-  width: 620px;
+  width: 720px;
   margin: 0 auto;
 }
 
@@ -165,7 +165,7 @@ a.button span {
   margin-right: 0;
 }
 
-code, pre {
+/*code, pre {
   font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal;
   color: #222;
   margin-bottom: 30px;
@@ -190,7 +190,7 @@ pre code {
   background-color: #303030;
   border: none;
   padding: 0;
-}
+}*/
 
 ul, ol, dl {
   margin-bottom: 20px;
@@ -216,18 +216,18 @@ em {
   font-style: italic;
 }
 
-table {
+#downloads table {
   width: 100%;
   border: 1px solid #ebebeb;
 }
 
-th {
+#downloads th {
   font-weight: 500;
 }
 
-td {
+#downloads td {
   border: 1px solid #ebebeb;
-  text-align: center; 
+  text-align: center;
   font-weight: 300;
 }
 
