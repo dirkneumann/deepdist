@@ -1,0 +1,4 @@
+deepdist
+gensim
+numpy
+# pyspark
