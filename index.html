@@ -40,7 +40,7 @@
 
         <section>
           <h3>How does it work?</h3>
-          <p>DeepDist implements <a href="http://research.google.com/archive/large_deep_networks_nips2012.html" target="_blank">Sandblaster</a>-like stochastic gradient descent.  It first starts a master model server.  Subsequently, on each data node, DeepDist fetches the model from the master and calls <strong>gradient()</strong>.  After computing gradients on the data partitions, gradient updates are sent back the the server.  On the server, the master model is updated by <strong>descent()</strong>.  Models can converge faster since gradient updates are constatently synchronized between the nodes.</p>
+          <p>DeepDist implements <a href="http://research.google.com/archive/large_deep_networks_nips2012.html" target="_blank">Downpour</a>-like stochastic gradient descent.  It first starts a master model server.  Subsequently, on each data node, DeepDist fetches the model from the master and calls <strong>gradient()</strong>.  After computing gradients on the data partitions, gradient updates are sent back the the server.  On the server, the master model is updated by <strong>descent()</strong>.  Models can converge faster since gradient updates are constatently synchronized between the nodes.</p>
           <img src="images/deepdistdesign.png"/>
         
           <p><strong>Figure 1</strong>. The model is stored on the master node.  The distributed nodes fetch the model before processing each partition, and send the gradient updates back the server.  The server can perform stochastic gradient descent (or other optmization procedures) using the updates from the nodes.
