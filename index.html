@@ -23,29 +23,40 @@
         <header>
           <h1>DeepDist</h1>
           <h2>Lightning-Fast Deep Learning on <a href="https://spark.apache.org/" target="_blank">Spark</a></h2>
+          <h2>Fast asynchronous stochastic gradient updates</h2>
           By <a href="https://www.linkedin.com/in/dirkneumann" target="_blank">Dirk Neumann</a>
         </header>
-        <section id="main_content">
-          <h3>Introduction</h3>
-          <p>Training deep belief networks requires extensive data and computation.  DeepDist accelerates model training by distributing stochastic gradient descent for data stored on HDFS / Spark.</p>
-        </section>
+        
         <section id="downloads" class="clearfix">
           <a href="https://github.com/dirkneumann/deepdist/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
           <a href="https://github.com/dirkneumann/deepdist/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
           <a href="https://github.com/dirkneumann/deepdist" target="_blank" id="view-on-github" class="button"><span>View on GitHub</span></a>
         </section>
+
+        <section id="main_content">
+          <h3>Introduction</h3>
+          <p>Training deep belief networks requires extensive data and computation.  DeepDist accelerates model training by distributing stochastic gradient descent for data stored on HDFS / Spark.</p>
+        </section>
+
         <section>
+          <h3>How does it work?</h3>
+          <p>DeepDist implements a <a href="http://research.google.com/archive/large_deep_networks_nips2012.html" target="_blank">Sandblaster</a>-like stochastic gradient descent.  It starts a master model server that integrates updates in real time.  On each data node, DeepDist fetches the model from the master, and then calls <strong>gradient()</strong>.  After computing gradients for the RDD partitions, gradient updates are send the the server.  On the server, the master model is updated by <strong>descent()</strong>.  Models can converge faster since gradient updates are constatently synchronized between the nodes.</p>
+          <img src="images/deepdistdesign.png"/>
+        
+          <p><strong>Figure 1</strong>. The model is store on the master node and served on port 5000.  The compute nodes fetch the model before processing each partition, and send the gradient updates back the server.  The server can perform stoachastic gradient descent (or other optmization procedures) with the node updates.
+        
+          <h3>How do MLlib and Mahout work?</h3>
+          
+          <p>In contrast, Mahout and MLlib compute all gradients over the (subsampled) data before updating the model.  Gradient updates can be less frequent and deep belief models might converge slower.
+          
+          <img src="images/mllib.png">
+          <p><strong>Figure 2</strong>. Classical machine learning libraries broadcast the model parameters to the nodes, and then compute the gradients in parallel.  At the end of a computational step, the gradients are collected and transfered to the master.</p>
+          
           <h3>
 <a name="welcome-to-deepdist" class="anchor" href="#welcome-to-deepdist"><span class="octicon octicon-link"></span></a>Quick start</h3>
           <p> Let's train a <a href="https://code.google.com/p/word2vec/" target="_blank">word2vec</a> model on all of <a href="http://dumps.wikimedia.org/enwiki/" target="_target">wikipedia</a> in 15 lines of Python code:</p>
           <script src="https://gist.github.com/dirkneumann/12e0d7cea39ecc82c10d.js"></script>
           <p>The model can be tested with 'woman' - 'man' + 'king' and computes: 'queen'.</p>
-          
-          <h3>How does it work?</h3>
-          <p>DeepDist implements a <a href="http://research.google.com/archive/large_deep_networks_nips2012.html" target="_blank">Sandblaster</a>-like stochastic gradient descent.  It start a master model server (on port 5000).  On each data node, DeepDist fetches the model from the server, and then calls <strong>gradient()</strong>.  After computing the gradient for each RDD partition, gradient updates are send the the server.  On the server, the master model is then updated by <strong>descent()</strong>.  Models can converge faster since gradient updates are constatently shared between the nodes.</p>
-          <img src="images/deepdistdesign.png"/>
-          
-          <p><strong>Figure 1</strong>. The model is store on the master node and served on port 5000.  The compute nodes fetch the model before processing each partition, and send the gradient updates back the server.  The server can perform stoachastic gradient descent (or other optmization procedures) with the node updates.
           
           <h3>Python module</h3>
 
