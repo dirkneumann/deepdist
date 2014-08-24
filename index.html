@@ -23,7 +23,7 @@
         <header>
           <h1>DeepDist</h1>
           <h2>Lightning-Fast Deep Learning on <a href="https://spark.apache.org/" target="_blank">Spark</a></h2>
-          <h2>Asynchronous stochastic gradient updates</h2>
+          <h2>Via asynchronous stochastic gradient updates</h2>
           By <a href="https://www.linkedin.com/in/dirkneumann" target="_blank">Dirk Neumann</a>
         </header>
         
@@ -47,7 +47,7 @@
         
           <h3>How do MLlib and Mahout work?</h3>
           
-          <p>In contrast, Mahout and MLlib compute all gradients over the (subsampled) data before updating the model.  Gradient updates can be less frequent and deep belief models might converge slower.
+          <p>In contrast, Mahout and MLlib compute all gradients over the (subsampled) data before they can update the model.  Gradient updates can be less frequent and deep belief models might converge slower.
           
           <img src="images/mllib.png">
           <p><strong>Figure 2</strong>. Classical machine learning libraries broadcast the model parameters to the nodes, and then compute the gradients in parallel.  At the end of a computational step, the gradients are collected and transfered to the master.</p>
@@ -73,7 +73,7 @@
           
           <p>Training speed can be greatly enhanced by adaptively adjusting the learning rate by <a href="http://www.cs.berkeley.edu/~jduchi/projects/DuchiHaSi10.pdf" target="_blank">AdaGrad</a>.  The complete Word2Vec model with 900 dimensions can be trained on the 19GB wikipedia corpus (using the words from the validation questions).</p>
           <img src="images/training.png"/>
-          <p><strong>Figure 2</strong>.  Performance on a test set (analogy questions) after training of a Word2Vec model with stochastic AdaGrad gradient descent.</p>
+          <p><strong>Figure 3</strong>.  Performance on a test set (analogy questions) after training of a Word2Vec model with stochastic AdaGrad gradient descent.</p>
                     
           <h3>References</h3>
           <p>J Dean, GS Corrado, R Monga, K Chen, M Devin, QV Le, MZ Mao, M’A Ranzato, A Senior, P Tucker, K Yang, and AY Ng. <a href="http://research.google.com/archive/large_deep_networks_nips2012.html" target="_blank">Large Scale Distributed Deep Networks</a>. NIPS 2012: Neural Information Processing Systems, Lake Tahoe, Nevada, 2012.</p>
