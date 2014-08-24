@@ -58,3 +58,19 @@ def descent(model, update):
     # model is a reference to the server model
     # update is a copy of a worker's update
 ```
+
+Training Speed
+----
+
+Training speed can be greatly enhanced by adaptively adjusting the learning rate by [AdaGrad](http://www.cs.berkeley.edu/~jduchi/projects/DuchiHaSi10.pdf). The complete Word2Vec model with 900 dimensions can be trained on the 19GB wikipedia corpus (using the words from the validation questions).
+
+![Training](http://deepdist.com/images/training.png)
+
+References
+----
+
+J Dean, GS Corrado, R Monga, K Chen, M Devin, QV Le, MZ Mao, M’A Ranzato, A Senior, P Tucker, K Yang, and AY Ng. [Large Scale Distributed Deep Networks](http://research.google.com/archive/large_deep_networks_nips2012.html). NIPS 2012: Neural Information Processing Systems, Lake Tahoe, Nevada, 2012.
+
+T Mikolov, I Sutskever, K Chen, G Corrado, and J Dean. [Distributed Representations of Words and Phrases and their Compositionality](http://arxiv.org/pdf/1310.4546.pdf). In Proceedings of NIPS, 2013.
+
+T Mikolov, K Chen, G Corrado, and J Dean. [Efficient Estimation of Word Representations in Vector Space](http://arxiv.org/pdf/1301.3781.pdf). In Proceedings of Workshop at ICLR, 2013.
