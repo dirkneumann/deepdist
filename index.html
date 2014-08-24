@@ -43,11 +43,11 @@
           <p>DeepDist implements <a href="http://research.google.com/archive/large_deep_networks_nips2012.html" target="_blank">Sandblaster</a>-like stochastic gradient descent.  It first starts a master model server.  Subsequently, on each data node, DeepDist fetches the model from the master and calls <strong>gradient()</strong>.  After computing gradients on the data partitions, gradient updates are sent back the the server.  On the server, the master model is updated by <strong>descent()</strong>.  Models can converge faster since gradient updates are constatently synchronized between the nodes.</p>
           <img src="images/deepdistdesign.png"/>
         
-          <p><strong>Figure 1</strong>. The model is stored on the master node.  The distributed nodes fetch the model before processing each partition, and send the gradient updates back the server.  The server can perform stoachastic gradient descent (or other optmization procedures) using the updates from the nodes.
+          <p><strong>Figure 1</strong>. The model is stored on the master node.  The distributed nodes fetch the model before processing each partition, and send the gradient updates back the server.  The server can perform stochastic gradient descent (or other optmization procedures) using the updates from the nodes.
         
           <h3>How do MLlib and Mahout work?</h3>
           
-          <p>In contrast, Mahout and MLlib compute all gradients over the (subsampled) data before they can update the model.  Gradient updates can be less frequent and deep belief models might converge slower.
+          <p>In contrast, Mahout and MLlib have to compute all subgradients over the (subsampled) data before they can update the model.  Gradient updates can be less frequent and deep belief models might converge slower.
           
           <img src="images/mllib.png">
           <p><strong>Figure 2</strong>. Classical machine learning libraries broadcast the model parameters to the nodes, and then compute the gradients in parallel.  At the end of a computational step, the gradients are collected and transfered to the master.</p>
