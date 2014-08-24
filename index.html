@@ -35,7 +35,7 @@
 
         <section id="main_content">
           <h3>Introduction</h3>
-          <p>Training deep belief networks requires extensive data and computation.  DeepDist accelerates model training by distributing stochastic gradient descent for data stored on HDFS / Spark.</p>
+          <p>Training deep belief networks requires extensive data and computation.  DeepDist accelerates model training by providing asychronous stochastic gradient descent for data stored on HDFS / Spark.</p>
         </section>
 
         <section>
@@ -47,7 +47,7 @@
         
           <h3>How do MLlib and Mahout work?</h3>
           
-          <p>In contrast, Mahout and MLlib have to compute all subgradients over the (subsampled) data before they can update the model.  Gradient updates can be less frequent and deep belief models might converge slower.
+          <p>In contrast, Mahout and MLlib have to compute all subgradients over the (subsampled) data before they can update the model.  Gradient updates can be less frequent and deep belief models might converge more slowly.
           
           <img src="images/mllib.png">
           <p><strong>Figure 2</strong>. Classical machine learning libraries broadcast the model parameters to the nodes, and then compute the gradients in parallel.  At the end of the computational step, gradient updates are collected and transfered to the master.</p>
