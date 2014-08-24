@@ -69,7 +69,6 @@ Training speed can be greatly enhanced by adaptively adjusting the learning rate
 References
 ----
 
-References
 J Dean, GS Corrado, R Monga, K Chen, M Devin, QV Le, MZ Mao, M’A Ranzato, A Senior, P Tucker, K Yang, and AY Ng. [Large Scale Distributed Deep Networks](http://research.google.com/archive/large_deep_networks_nips2012.html). NIPS 2012: Neural Information Processing Systems, Lake Tahoe, Nevada, 2012.
 
 T Mikolov, I Sutskever, K Chen, G Corrado, and J Dean. [Distributed Representations of Words and Phrases and their Compositionality](http://arxiv.org/pdf/1310.4546.pdf). In Proceedings of NIPS, 2013.
