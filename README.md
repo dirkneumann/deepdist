@@ -58,3 +58,10 @@ def descent(model, update):
     # model is a reference to the server model
     # update is a copy of a worker's update
 ```
+
+Training Speed
+----
+
+Training speed can be greatly enhanced by adaptively adjusting the learning rate by [AdaGrad](http://www.cs.berkeley.edu/~jduchi/projects/DuchiHaSi10.pdf). The complete Word2Vec model with 900 dimensions can be trained on the 19GB wikipedia corpus (using the words from the validation questions).
+
+![Training](http://deepdist.com/images/training.png)
