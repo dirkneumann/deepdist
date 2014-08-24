@@ -8,7 +8,7 @@ sc = SparkContext()
 
 corpus = sc.textFile('enwiki').map(lambda s: s.split()).filter(lambda s: len(s) > 0)
 
-print 'Building vocabulary...'
+print 'Build vocabulary...'
 s = corpus   \
     .flatMap(lambda s: [(w, 1) for w in s])   \
     .reduceByKey(lambda a, b: a+b)            \
@@ -48,13 +48,12 @@ def build_vocab(model, vocab):
 model = Word2Vec()
 build_vocab(model, vocab)
 
-print 'Pretraining...'
+model.ssyn0 = 0   # AdaGrad: sum of squared gradients
+model.ssyn1 = 0
+
+print 'Pretrain model...'
 for filename in os.listdir('enwiki')[:10]:
     model.train([s.split() for s in open('enwiki/%s' % filename)])
-print '...pretrained.'
-
-model.ssyn0 = 0
-model.ssyn1 = 0
 
 def gradient(model, data):
     syn0, syn1 = model.syn0.copy(), model.syn1.copy()
@@ -83,11 +82,15 @@ def descent(model, update):
     
     model.word_count = long(model.word_count) + long(update['words'])
 
+print 'Train model...'
 with DeepDist(model) as dd:
     
     dd.train(corpus, gradient, descent)
 
+print 'Saving model to "model.bin"...'
+model.save_word2vec_format('model.bin', binary=True)
 
+print 'Evaluate model...'
 del model.syn0norm
 for row in model.accuracy('questions-words.txt'):
     if row['section'] != 'total':
