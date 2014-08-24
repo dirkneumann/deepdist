@@ -10,7 +10,7 @@
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <title>DeepDist by Dirk Neumann</title>
+    <title>DeepDist | Lightning-Fast Deep Learning on Spark</title>
   </head>
 
   <body>
@@ -23,68 +23,67 @@
         <header>
           <h1>DeepDist</h1>
           <h2>Lightning-Fast Deep Learning on <a href="https://spark.apache.org/" target="_blank">Spark</a></h2>
+          By <a href="https://www.linkedin.com/in/dirkneumann" target="_blank">Dirk Neumann</a>
         </header>
-        <!--
+        <section id="main_content">
+          <h3>Introduction</h3>
+          <p>Training deep belief networks requires extensive data and computation.  DeepDist accelerates model training by distributing stochastic gradient descent for data stored on HDFS / Spark.</p>
+        </section>
         <section id="downloads" class="clearfix">
           <a href="https://github.com/dirkneumann/deepdist/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
           <a href="https://github.com/dirkneumann/deepdist/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
-          <a href="https://github.com/dirkneumann/deepdist" id="view-on-github" class="button"><span>View on GitHub</span></a>
-          <br>&nbsp;<br>&nbsp;</br>
-          git clone https://github.com/dirkneumann/deepdist.git
+          <a href="https://github.com/dirkneumann/deepdist" target="_blank" id="view-on-github" class="button"><span>View on GitHub</span></a>
         </section>
-
-        <hr>
-        -->
-        <section id="main_content">
-          <h3>Introduction</h3>
-          <p>Training deep belief networks requires extensive data and computation.  DeepDist accelerates the training by distributing stochastic gradient descent for data stored on HDFS / Spark via a simple Python interface.</p>
+        <section>
           <h3>
 <a name="welcome-to-deepdist" class="anchor" href="#welcome-to-deepdist"><span class="octicon octicon-link"></span></a>Quick start</h3>
-          <p> Let's train a <a href="https://code.google.com/p/word2vec/" target="_blank">word2vec</a> model on all of <a href="http://dumps.wikimedia.org/enwiki/" target="_target">wikipedia</a> in 15 lines of code:</p>
+          <p> Let's train a <a href="https://code.google.com/p/word2vec/" target="_blank">word2vec</a> model on all of <a href="http://dumps.wikimedia.org/enwiki/" target="_target">wikipedia</a> in 15 lines of Python code:</p>
           <script src="https://gist.github.com/dirkneumann/12e0d7cea39ecc82c10d.js"></script>
           <p>The model can be tested with 'woman' - 'man' + 'king' and computes: 'queen'.</p>
           
           <h3>How does it work?</h3>
-          <p>DeepDist implements a <a href="http://research.google.com/archive/large_deep_networks_nips2012.html" target="_blank">Sandblaster</a>-like stochastic gradient descent.  It start a master model server (on port 5000).  On each data node, DeepDist fetches the model from the server, and then calls <strong>gradient()</strong>.  After computing the gradient for each RDD partition, gradient updates are send the the server.  On the server, the master model is then updated by <strong>descent()</strong>.</p>
+          <p>DeepDist implements a <a href="http://research.google.com/archive/large_deep_networks_nips2012.html" target="_blank">Sandblaster</a>-like stochastic gradient descent.  It start a master model server (on port 5000).  On each data node, DeepDist fetches the model from the server, and then calls <strong>gradient()</strong>.  After computing the gradient for each RDD partition, gradient updates are send the the server.  On the server, the master model is then updated by <strong>descent()</strong>.  Models can converge faster since gradient updates are constatently shared between the nodes.</p>
           <img src="images/deepdistdesign.png"/>
           
           <p><strong>Figure 1</strong>. The model is store on the master node and served on port 5000.  The compute nodes fetch the model before processing each partition, and send the gradient updates back the server.  The server can perform stoachastic gradient descent (or other optmization procedures) with the node updates.
           
-          <h3>API</h3>
-          <pre><code>class DeepDist:
+          <h3>Python module</h3>
 
-    def __init__(self, model):
-        # initialized the model server
-    
-    def train(self, corpus, gradient, descent):
-        # accepts a data RDD, and gradient and descent callback methods
-
-def gradient(model, data):
-    # model is a copy of the master model
-    # data is an iterator for the current partition of the data RDD
-    # returns the gradient update
-
-def descent(model, update):
-    # model is a reference to the server model
-    # update is a copy of a worker's update
-          </code></pre>
+          DeepDist provides a simple Python interface.  The <strong>with</strong> statement starts the model server.  Distributed gradient updates are computed on partitions of a resilient distributed dataset (RDD) data.  The gradient updates are incorporated into the master model via custom descent method.
+          
+          <script src="https://gist.github.com/dirkneumann/7591ec58b14a754a30b7.js"></script>
+          <br>
+          
+          <h3>Scala package</h3>
+          
+          Are you interested in a Scala version of this package?<br><br>
           
           <h3>Training Speed</h3>
           
-          <p>Training speed can be greatly enhanced by adaptively adjusting the learning rate by <a href="http://www.cs.berkeley.edu/~jduchi/projects/DuchiHaSi10.pdf" target="_blank">AdaGrad</a>.  The complete Word2Vec model with 900 dimensions can be training on a 19GB wikipedia corpus with DeepDist.</p>
+          <p>Training speed can be greatly enhanced by adaptively adjusting the learning rate by <a href="http://www.cs.berkeley.edu/~jduchi/projects/DuchiHaSi10.pdf" target="_blank">AdaGrad</a>.  The complete Word2Vec model with 900 dimensions can be trained on the 19GB wikipedia corpus (using the words from the validation questions).</p>
           <img src="images/training.png"/>
           <p><strong>Figure 2</strong>.  Performance on a test set (analogy questions) after training up to 100,000 parallel epochs of a Word2Vec model with stochastic AdaGrad gradient descent.</p>
-          
+                    
+          <h3>References</h3>
+          <p>J Dean, GS Corrado, R Monga, K Chen, M Devin, QV Le, MZ Mao, M’A Ranzato, A Senior, P Tucker, K Yang, and AY Ng. <a href="http://research.google.com/archive/large_deep_networks_nips2012.html" target="_blank">Large Scale Distributed Deep Networks</a>. NIPS 2012: Neural Information Processing Systems, Lake Tahoe, Nevada, 2012.</p>
+          <p>T Mikolov, I Sutskever, K Chen, G Corrado, and J Dean. <a href="http://arxiv.org/pdf/1310.4546.pdf" target="_blank">Distributed Representations of Words and Phrases and their Compositionality.</a>  In Proceedings of NIPS, 2013.</p>
+          <p>T Mikolov, K Chen, G Corrado, and J Dean. <a href="http://arxiv.org/pdf/1301.3781.pdf" target="_blank">Efficient Estimation of Word Representations in Vector Space</a>. In Proceedings of Workshop at ICLR, 2013.</p>
+
+          <hr>
+
           <h3>Addition Information</h3>
+          <br>
           <table><tr><td>DeepDist:</td><td><a href="https://github.com/dirkneumann/deepdist/" target="_blank">https://github.com/dirkneumann/deepdist</a><br>&nbsp;</td></tr>
-          <tr><td>Wikipedia Data: &nbsp; </td><td> <a href="https://dumps.wikimedia.org/enwiki/" target="_target">https://dumps.wikimedia.org/enwiki</a></td></tr>
-          <tr><td>Text from dumps: &nbsp; </td><td> <a href="http://cs.fit.edu/~mmahoney/compression/textdata.html" target="_target">http://cs.fit.edu/~mmahoney/compression/textdata.html</a></td></tr>
+          <tr><td>Wikipedia data: &nbsp; </td><td> <a href="https://dumps.wikimedia.org/enwiki/" target="_target">https://dumps.wikimedia.org/enwiki</a></td></tr>
+          <tr><td>Extracting text: &nbsp; </td><td> <a href="http://cs.fit.edu/~mmahoney/compression/textdata.html" target="_target">http://cs.fit.edu/~mmahoney/compression/textdata.html</a></td></tr>
           
           </table>
+
+
         </section>
 
         <footer>
-          DeepDist is maintained by <a href="https://github.com/dirkneumann">DirkNeumann</a><br>
+          DeepDist is maintained by <a href="https://github.com/dirkneumann" target="_blank">DirkNeumann</a><br>
         </footer>
 
         
