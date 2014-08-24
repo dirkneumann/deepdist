@@ -54,24 +54,25 @@
           
           <h3>
 <a name="welcome-to-deepdist" class="anchor" href="#welcome-to-deepdist"><span class="octicon octicon-link"></span></a>Quick start</h3>
-          <p> Let's train a <a href="https://code.google.com/p/word2vec/" target="_blank">word2vec</a> model on all of <a href="http://dumps.wikimedia.org/enwiki/" target="_target">wikipedia</a> in 15 lines of Python code:</p>
+          
+          <p> Let's learn vector representations of words using a <a href="https://code.google.com/p/word2vec/" target="_blank">word2vec</a> model.  These representations can be used in many natural language processing applications. To train it on all of <a href="http://dumps.wikimedia.org/enwiki/" target="_target">wikipedia</a>, one needs 15 lines of code:</p>
           <script src="https://gist.github.com/dirkneumann/12e0d7cea39ecc82c10d.js"></script>
-          <p>The model can be tested with 'woman' - 'man' + 'king' and computes: 'queen'.</p>
+          <p>The resulting vector representations of words can be added and subtracted.  The model can for example be tested with 'woman' - 'man' + 'king' and computes: 'queen'.</p>
           
           <h3>Python module</h3>
 
-          DeepDist provides a simple Python interface.  The <strong>with</strong> statement starts the model server.  Distributed gradient updates are computed on partitions of a resilient distributed dataset (RDD) data.  The gradient updates are incorporated into the master model via custom descent method.
+          <p>DeepDist provides a simple Python interface.  The <strong>with</strong> statement starts the model server.  Distributed gradient updates are computed on partitions of a resilient distributed dataset (RDD).  The gradient updates are incorporated into the master model via a descent function.</p>
           
           <script src="https://gist.github.com/dirkneumann/7591ec58b14a754a30b7.js"></script>
           <br>
           
           <h3>Scala package</h3>
           
-          Are you interested in a Scala version of this package?<br><br>
+          <p>Are you interested in a Scala version of this package?</p><br>
           
           <h3>Training Speed</h3>
           
-          <p>Training speed can be greatly enhanced by adaptively adjusting the learning rate by <a href="http://www.cs.berkeley.edu/~jduchi/projects/DuchiHaSi10.pdf" target="_blank">AdaGrad</a>.  The complete Word2Vec model with 900 dimensions can be trained on the 19GB wikipedia corpus (using the words from the validation questions).</p>
+          <p>Training speed can be greatly enhanced by adaptively adjusting the learning rate by <a href="http://www.cs.berkeley.edu/~jduchi/projects/DuchiHaSi10.pdf" target="_blank">AdaGrad</a>.  The complete Word2Vec model with 900 dimensions can be trained on the 19GB wikipedia corpus (using only words from the validation questions).</p>
           <img src="images/training.png"/>
           <p><strong>Figure 3</strong>.  Performance on a test set (analogy questions) after training of a Word2Vec model with stochastic AdaGrad gradient descent.</p>
                     
