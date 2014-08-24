@@ -50,7 +50,7 @@
           <p>In contrast, Mahout and MLlib have to compute all subgradients over the (subsampled) data before they can update the model.  Gradient updates can be less frequent and deep belief models might converge slower.
           
           <img src="images/mllib.png">
-          <p><strong>Figure 2</strong>. Classical machine learning libraries broadcast the model parameters to the nodes, and then compute the gradients in parallel.  At the end of a computational step, the gradients are collected and transfered to the master.</p>
+          <p><strong>Figure 2</strong>. Classical machine learning libraries broadcast the model parameters to the nodes, and then compute the gradients in parallel.  At the end of the computational step, gradient updates are collected and transfered to the master.</p>
           
           <h3>
 <a name="welcome-to-deepdist" class="anchor" href="#welcome-to-deepdist"><span class="octicon octicon-link"></span></a>Quick start</h3>
