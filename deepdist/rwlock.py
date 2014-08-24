@@ -1,4 +1,11 @@
+"""Simple reader-writer locks in Python
+Many readers can hold the lock XOR one and only one writer
+
+http://majid.info/blog/a-reader-writer-lock-for-python/
+"""
 import threading
+ 
+version = """$Id: 04-1.html,v 1.3 2006/12/05 17:45:12 majid Exp $"""
 
 class RWLock:
   """
