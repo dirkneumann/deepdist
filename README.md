@@ -1,9 +1,9 @@
-Training deep belief networks requires extensive data and computation. DeepDist accelerates the training by distributing stochastic gradient descent for data stored on HDFS / Spark via a simple Python interface.
-
-See: [deepdist.com](http://deepdist.com)
+Training deep belief networks requires extensive data and computation. [DeepDist](http://deepdist.com) accelerates the training by distributing stochastic gradient descent for data stored on HDFS / Spark via a simple Python interface. Overview: [deepdist.com](http://deepdist.com)
 
 Quick start:
 ----
+
+Training of [word2vec](https://code.google.com/p/word2vec/) model on [wikipedia](http://dumps.wikimedia.org/enwiki/) in 15 lines of code:
 
 ```python
 from deepdist import DeepDist
@@ -34,3 +34,27 @@ How does it work?
 DeepDist implements a Sandblaster-like stochastic gradient descent. It start a master model server (on port 5000). On each data node, DeepDist fetches the model from the server, and then calls gradient(). After computing the gradient for each RDD partition, gradient updates are send the the server. On the server, the master model is then updated by descent().
 
 ![Alt text](http://deepdist.com/images/deepdistdesign.png)
+
+Python module
+----
+
+[DeepDist](http://deepdist.com) provides a simple Python interface. The with statement starts the model server. Distributed gradient updates are computed on partitions of a resilient distributed dataset (RDD) data. The gradient updates are incorporated into the master model via custom descent method.
+
+```python
+from deepdist import DeepDist
+ 
+with DeepDist(model) as dd:    # initialized server with any model    
+    
+    dd.train(data, gradient, descent)
+    # train with an RDD "data" by computing distributed gradients and
+    # descending the model parameters space according to gradient updates
+ 
+def gradient(model, data):
+    # model is a copy of the master model
+    # data is an iterator for the current partition of the data RDD
+    # returns the gradient update
+ 
+def descent(model, update):
+    # model is a reference to the server model
+    # update is a copy of a worker's update
+```
