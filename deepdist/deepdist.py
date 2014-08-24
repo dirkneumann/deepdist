@@ -20,7 +20,6 @@ class DeepDist:
         self.state    = 'serving'
         self.served   = 0
         self.received = 0
-        self.master   = socket.gethostbyname(socket.gethostname())
 
     def __enter__(self):
         Thread(target=self.start).start()
@@ -33,11 +32,11 @@ class DeepDist:
         app = Flask(__name__)
 
         @app.route('/')
-        def main_url():
+        def index():
             return 'DeepDist'
 
         @app.route('/model', methods=['GET', 'POST', 'PUT'])
-        def model_url():
+        def model_flask():
             i = 0
             while (self.state != 'serving') and (i < 20):
                 time.sleep(1)
@@ -47,18 +46,19 @@ class DeepDist:
             self.served += 1
             model = copy.deepcopy(self.model)
             self.lock.release()
+            
             return pickle.dumps(model, -1)
     
 
         @app.route('/update', methods=['GET', 'POST', 'PUT'])
-        def update_url():
+        def update_flask():
             gradient = pickle.loads(request.data)
 
             self.lock.acquire_write()
             state = 'receiving'
             self.received += 1
             
-            updated_model = self.descent(self.model, gradient)
+            self.descent(self.model, gradient)
             
             if self.received >= self.served:
                 self.received = 0
@@ -75,19 +75,21 @@ class DeepDist:
         
         self.descent = descent
         
+        host = self.host   # will be pickled by rdd.mapPartitions
+        
         def mapPartitions(data):
-            return (send_gradient(gradient(fetch_model(), data)))
+            return (send_gradient(gradient(fetch_model(host=host), data), host=host))
         
         return rdd.mapPartitions(mapPartitions).collect()
 
-def fetch_model():
-    request = urllib2.Request('http://%s/model' % self.host,
+def fetch_model(host='localhost:5000'):
+    request = urllib2.Request('http://%s/model' % host,
         headers={'Content-Type': 'application/deepdist'})
     return pickle.loads(urllib2.urlopen(request).read())
 
-def send_gradient(gradient):
+def send_gradient(gradient, host='localhost:5000'):
     if not gradient:
           return 'EMPTY'
-    request = urllib2.Request('http://%s/update' % self.host, pickle.dumps(gradient, -1),
+    request = urllib2.Request('http://%s/update' % host, pickle.dumps(gradient, -1),
         headers={'Content-Type': 'application/deepdist'})
     return urllib2.urlopen(request).read()

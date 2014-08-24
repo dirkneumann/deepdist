@@ -3,7 +3,7 @@ Training deep belief networks requires extensive data and computation. [DeepDist
 Quick start:
 ----
 
-Training of [word2vec](https://code.google.com/p/word2vec/) model on [wikipedia](http://dumps.wikimedia.org/enwiki/) in 15 lines of code:
+Training of a [word2vec](https://code.google.com/p/word2vec/) model on [wikipedia](http://dumps.wikimedia.org/enwiki/) in 15 lines of code:
 
 ```python
 from deepdist import DeepDist
