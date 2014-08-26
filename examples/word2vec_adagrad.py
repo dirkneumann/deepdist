@@ -3,8 +3,12 @@ from gensim.models.word2vec import Vocab, Word2Vec
 import numpy as np
 import os
 from pyspark import SparkContext
+import urlparse
 
 sc = SparkContext()
+host = '%s:5000' % urlparse.urlparse(sc.master).netloc.split(':')[0]
+print host
+print sc.__dict__
 
 corpus = sc.textFile('enwiki').map(lambda s: s.split()).filter(lambda s: len(s) > 0)
 
@@ -14,8 +18,9 @@ s = corpus   \
     .reduceByKey(lambda a, b: a+b)            \
     .filter(lambda x: x[1] >= 5)              \
     .map(lambda x: (x[1], x[0]))              \
-    .sortByKey(False)                         \
     .collect()
+    #.sortByKey(False)                         \
+    #.collect()
 
 vocab = {}
 for i, (c, w) in enumerate(s):
@@ -48,12 +53,16 @@ def build_vocab(model, vocab):
 model = Word2Vec()
 build_vocab(model, vocab)
 
+model.version = 1
+
 model.ssyn0 = 0   # AdaGrad: sum of squared gradients
 model.ssyn1 = 0
 
+'''
 print 'Pretrain model...'
 for filename in os.listdir('enwiki')[:10]:
     model.train([s.split() for s in open('enwiki/%s' % filename)])
+'''
 
 def gradient(model, data):
     syn0, syn1 = model.syn0.copy(), model.syn1.copy()
@@ -81,11 +90,12 @@ def descent(model, update):
     model.syn1 += syn1 * alpha1
     
     model.word_count = long(model.word_count) + long(update['words'])
+    model.version += 1
 
 print 'Train model...'
-with DeepDist(model) as dd:
+with DeepDist(model, host=host) as dd:
     
-    dd.train(corpus, gradient, descent)
+    dd.train(corpus.sample(False, 0.01), gradient, descent)
 
 print 'Saving model to "model.bin"...'
 model.save_word2vec_format('model.bin', binary=True)

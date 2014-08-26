@@ -1,6 +1,5 @@
 import copy
 import cPickle as pickle
-from flask import Flask, request
 from rwlock import RWLock
 import socket
 from threading import Thread
@@ -29,6 +28,8 @@ class DeepDist:
         pass # need to shut down server here
         
     def start(self):
+        from flask import Flask, request
+
         app = Flask(__name__)
 
         @app.route('/')
