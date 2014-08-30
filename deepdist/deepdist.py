@@ -1,5 +1,6 @@
 import copy
 import cPickle as pickle
+from multiprocessing import Process
 from rwlock import RWLock
 import socket
 from threading import Thread
@@ -8,24 +9,28 @@ import urllib2
 """Lightning-Fast Deep Learning on Spark
 """
 class DeepDist:
-    def __init__(self, model, batch=None, host='127.0.0.1:5000'):
+    def __init__(self, model, batch=None, master='127.0.0.1:5000'):
         """DeepDist - Distributed deep learning.
         :param model: provide a model that can be trained in parallel on the workers
         """
         self.model  = model
         self.lock   = RWLock()
         self.descent  = lambda model, gradient: model
-        self.host     = host
+        self.master   = master
         self.state    = 'serving'
         self.served   = 0
         self.received = 0
         self.batch    = batch
+        self.server   = None
 
     def __enter__(self):
         Thread(target=self.start).start()
+        # self.server = Process(target=self.start)
+        # self.server.start()
         return self
     
     def __exit__(self, type, value, traceback):
+        # self.server.terminate()
         pass # need to shut down server here
         
     def start(self):
@@ -74,10 +79,16 @@ class DeepDist:
         app.run(host='0.0.0.0', debug=True, threaded=True, use_reloader=False)
 
     def train(self, rdd, gradient, descent):
-        
+        master = self.master   # will be pickled
+        if master == None:
+            master = rdd.ctx._conf.get('spark.master')
+        if master.startswith('local['):
+            master = 'localhost:5000'
+        else:
+            master = '%s:5000' % urlparse.urlparse(sc.master).netloc.split(':')[0]
+
         self.descent = descent
         
-        host = self.host   # will be pickled by rdd.mapPartitions
         batch = self.batch
         
         def mapPartitions(data):
@@ -95,19 +106,19 @@ class DeepDist:
                   return None
             res = []
             while last != None:
-              res.append(send_gradient(gradient(fetch_model(host=host), Iter()), host=host))
+              res.append(send_gradient(gradient(fetch_model(master=master), Iter()), master=master))
             return res
         
         return rdd.mapPartitions(mapPartitions).collect()
 
-def fetch_model(host='localhost:5000'):
-    request = urllib2.Request('http://%s/model' % host,
+def fetch_model(master='localhost:5000'):
+    request = urllib2.Request('http://%s/model' % master,
         headers={'Content-Type': 'application/deepdist'})
     return pickle.loads(urllib2.urlopen(request).read())
 
-def send_gradient(gradient, host='localhost:5000'):
+def send_gradient(gradient, master='localhost:5000'):
     if not gradient:
           return 'EMPTY'
-    request = urllib2.Request('http://%s/update' % host, pickle.dumps(gradient, -1),
+    request = urllib2.Request('http://%s/update' % master, pickle.dumps(gradient, -1),
         headers={'Content-Type': 'application/deepdist'})
     return urllib2.urlopen(request).read()

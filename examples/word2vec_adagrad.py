@@ -14,7 +14,7 @@ else:
 print host
 print sc.__dict__
 
-corpus = sc.textFile('s3n://dd-enwiki/*a.txt.gz').map(lambda s: s.split()).filter(lambda s: len(s) > 0)
+corpus = sc.textFile('s3n://dd-enwiki/*-aa.txt.gz').repartition(16).map(lambda s: s.split()).filter(lambda s: len(s) > 0)
 
 print 'Build vocabulary...'
 s = corpus   \
