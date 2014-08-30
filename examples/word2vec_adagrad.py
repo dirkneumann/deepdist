@@ -4,13 +4,17 @@ import numpy as np
 import os
 from pyspark import SparkContext
 import urlparse
+import sys
 
 sc = SparkContext()
-host = '%s:5000' % urlparse.urlparse(sc.master).netloc.split(':')[0]
+if sc.master.startswith('local['):
+  host = 'localhost:5000'
+else:
+  host = '%s:5000' % urlparse.urlparse(sc.master).netloc.split(':')[0]
 print host
 print sc.__dict__
 
-corpus = sc.textFile('enwiki').map(lambda s: s.split()).filter(lambda s: len(s) > 0)
+corpus = sc.textFile('s3n://dd-enwiki/*a.txt.gz').map(lambda s: s.split()).filter(lambda s: len(s) > 0)
 
 print 'Build vocabulary...'
 s = corpus   \
@@ -93,7 +97,7 @@ def descent(model, update):
     model.version += 1
 
 print 'Train model...'
-with DeepDist(model, host=host) as dd:
+with DeepDist(model, batch=1000, host=host) as dd:
     
     dd.train(corpus.sample(False, 0.01), gradient, descent)
 

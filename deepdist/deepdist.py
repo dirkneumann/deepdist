@@ -8,7 +8,7 @@ import urllib2
 """Lightning-Fast Deep Learning on Spark
 """
 class DeepDist:
-    def __init__(self, model, host='127.0.0.1:5000'):
+    def __init__(self, model, batch=None, host='127.0.0.1:5000'):
         """DeepDist - Distributed deep learning.
         :param model: provide a model that can be trained in parallel on the workers
         """
@@ -19,6 +19,7 @@ class DeepDist:
         self.state    = 'serving'
         self.served   = 0
         self.received = 0
+        self.batch    = batch
 
     def __enter__(self):
         Thread(target=self.start).start()
@@ -77,9 +78,25 @@ class DeepDist:
         self.descent = descent
         
         host = self.host   # will be pickled by rdd.mapPartitions
+        batch = self.batch
         
         def mapPartitions(data):
-            return (send_gradient(gradient(fetch_model(host=host), data), host=host))
+            last = 'dummy'
+            class Iter:
+              def __iter__(self):
+                self.i = 0
+                return self
+              def next(self):
+                if (batch == None) or (self.i < batch):
+                  self.i += 1
+                  last = data.next()
+                  return last
+                else:
+                  return None
+            res = []
+            while last != None:
+              res.append(send_gradient(gradient(fetch_model(host=host), Iter()), host=host))
+            return res
         
         return rdd.mapPartitions(mapPartitions).collect()
 
