@@ -3,8 +3,10 @@ import cPickle as pickle
 from multiprocessing import Process
 from rwlock import RWLock
 import socket
+import sys
 from threading import Thread
 import urllib2
+import urlparse
 
 """Lightning-Fast Deep Learning on Spark
 """
@@ -45,7 +47,7 @@ class DeepDist:
         @app.route('/model', methods=['GET', 'POST', 'PUT'])
         def model_flask():
             i = 0
-            while (self.state != 'serving') and (i < 20):
+            while (self.state != 'serving') and (i < 1000):
                 time.sleep(1)
                 i += 1
 
@@ -80,12 +82,18 @@ class DeepDist:
 
     def train(self, rdd, gradient, descent):
         master = self.master   # will be pickled
+        print 'master0: ', master
         if master == None:
             master = rdd.ctx._conf.get('spark.master')
+        print 'master1: ', master
         if master.startswith('local['):
             master = 'localhost:5000'
         else:
-            master = '%s:5000' % urlparse.urlparse(sc.master).netloc.split(':')[0]
+            if master.startswith('spark://'):
+                master = '%s:5000' % urlparse.urlparse(master).netloc.split(':')[0]
+            else:
+                master = '%s:5000' % master.split(':')[0]
+        print '\n*** master: %s\n' % master
 
         self.descent = descent
         
@@ -112,6 +120,7 @@ class DeepDist:
         return rdd.mapPartitions(mapPartitions).collect()
 
 def fetch_model(master='localhost:5000'):
+    print '\n*** url: %s' % ('http://%s/model' % master)
     request = urllib2.Request('http://%s/model' % master,
         headers={'Content-Type': 'application/deepdist'})
     return pickle.loads(urllib2.urlopen(request).read())

@@ -2,19 +2,16 @@ from deepdist import DeepDist
 from gensim.models.word2vec import Vocab, Word2Vec
 import numpy as np
 import os
-from pyspark import SparkContext
+from pyspark import SparkConf, SparkContext
 import urlparse
+import random
 import sys
+import time
 
-sc = SparkContext()
-if sc.master.startswith('local['):
-  host = 'localhost:5000'
-else:
-  host = '%s:5000' % urlparse.urlparse(sc.master).netloc.split(':')[0]
-print host
-print sc.__dict__
+conf = SparkConf()
+sc = SparkContext(conf=conf)
 
-corpus = sc.textFile('s3n://dd-enwiki/*-aa.txt.gz').repartition(16).map(lambda s: s.split()).filter(lambda s: len(s) > 0)
+corpus = sc.textFile('s3n://dd-enwiki/*a.txt.gz').map(lambda s: s.split()).filter(lambda s: len(s) > 0)
 
 print 'Build vocabulary...'
 s = corpus   \
@@ -78,6 +75,8 @@ def gradient(model, data):
     }
     return update
 
+t = time.time()
+
 def descent(model, update):
     alpha = max(model.min_alpha, model.alpha * (1.0 - 1.0 * model.word_count / model.total_words))
     
@@ -96,8 +95,23 @@ def descent(model, update):
     model.word_count = long(model.word_count) + long(update['words'])
     model.version += 1
 
+    if random.random() < 0.1:
+        print 'Evaluating model...'
+        log = open('train.txt', 'a')
+        try:
+            del model.syn0norm
+        except:
+            pass
+        for row in model.accuracy('questions-words.txt'):
+            if row['section'] != 'total':
+                continue
+            print >>log, (' %i %.1f%% v%i %.1f %.1f' %
+                (row['correct'], 100.0 * row['correct'] / (row['incorrect'] + row['correct']),
+                 model.version, 1.0 * row['correct'] / model.version, time.time() - t))
+
+
 print 'Train model...'
-with DeepDist(model, batch=1000, host=host) as dd:
+with DeepDist(model, batch=100000, master='54.188.71.71:5000') as dd:
     
     dd.train(corpus.sample(False, 0.01), gradient, descent)
 
