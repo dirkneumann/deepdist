@@ -111,7 +111,7 @@ def descent(model, update):
 
 
 print 'Train model...'
-with DeepDist(model, batch=100000, master='54.188.71.71:5000') as dd:
+with DeepDist(model, batch=100000, master='54.188.115.9:5000') as dd:
     
     dd.train(corpus.sample(False, 0.01), gradient, descent)
 
