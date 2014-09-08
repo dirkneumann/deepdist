@@ -11,7 +11,7 @@ import urlparse
 """Lightning-Fast Deep Learning on Spark
 """
 class DeepDist:
-    def __init__(self, model, batch=None, master='127.0.0.1:5000'):
+    def __init__(self, model, master='127.0.0.1:5000', min_updates=0, max_updates=4096):
         """DeepDist - Distributed deep learning.
         :param model: provide a model that can be trained in parallel on the workers
         """
@@ -22,8 +22,10 @@ class DeepDist:
         self.state    = 'serving'
         self.served   = 0
         self.received = 0
-        self.batch    = batch
-        self.server   = None
+        #self.server   = None
+        self.pmodel   = None
+        self.min_updates = min_updates
+        self.max_updates = max_updates
 
     def __enter__(self):
         Thread(target=self.start).start()
@@ -47,16 +49,26 @@ class DeepDist:
         @app.route('/model', methods=['GET', 'POST', 'PUT'])
         def model_flask():
             i = 0
-            while (self.state != 'serving') and (i < 1000):
+            while (self.state != 'serving' or self.served >= self.max_updates) and (i < 1000):
                 time.sleep(1)
                 i += 1
 
+            # pickle on first read
+            pmodel = None
             self.lock.acquire_read()
-            self.served += 1
-            model = copy.deepcopy(self.model)
-            self.lock.release()
-            
-            return pickle.dumps(model, -1)
+            if not self.pmodel:
+                self.lock.release()
+                self.lock.acquire_write()
+                if not self.pmodel:
+                    self.pmodel = pickle.dumps(self.model, -1)
+                self.served += 1
+                pmodel = self.pmodel
+                self.lock.release()
+            else:
+                self.served += 1
+                pmodel = self.pmodel
+                self.lock.release()
+            return pmodel
     
 
         @app.route('/update', methods=['GET', 'POST', 'PUT'])
@@ -64,15 +76,17 @@ class DeepDist:
             gradient = pickle.loads(request.data)
 
             self.lock.acquire_write()
-            state = 'receiving'
+            if self.min_updates <= self.served:
+                state = 'receiving'
             self.received += 1
             
             self.descent(self.model, gradient)
             
-            if self.received >= self.served:
+            if self.received >= self.served and self.min_updates <= self.received:
                 self.received = 0
                 self.served   = 0
                 self.state    = 'serving'
+                self.pmodel = None
             
             self.lock.release()
             return 'OK'
@@ -82,10 +96,8 @@ class DeepDist:
 
     def train(self, rdd, gradient, descent):
         master = self.master   # will be pickled
-        print 'master0: ', master
         if master == None:
             master = rdd.ctx._conf.get('spark.master')
-        print 'master1: ', master
         if master.startswith('local['):
             master = 'localhost:5000'
         else:
@@ -93,34 +105,16 @@ class DeepDist:
                 master = '%s:5000' % urlparse.urlparse(master).netloc.split(':')[0]
             else:
                 master = '%s:5000' % master.split(':')[0]
-        print '\n*** master: %s\n' % master
+        print '\n*** Master: %s\n' % master
 
         self.descent = descent
         
-        batch = self.batch
-        
         def mapPartitions(data):
-            last = 'dummy'
-            class Iter:
-              def __iter__(self):
-                self.i = 0
-                return self
-              def next(self):
-                if (batch == None) or (self.i < batch):
-                  self.i += 1
-                  last = data.next()
-                  return last
-                else:
-                  return None
-            res = []
-            while last != None:
-              res.append(send_gradient(gradient(fetch_model(master=master), Iter()), master=master))
-            return res
+            return [send_gradient(gradient(fetch_model(master=master), data), master=master)]
         
         return rdd.mapPartitions(mapPartitions).collect()
 
 def fetch_model(master='localhost:5000'):
-    print '\n*** url: %s' % ('http://%s/model' % master)
     request = urllib2.Request('http://%s/model' % master,
         headers={'Content-Type': 'application/deepdist'})
     return pickle.loads(urllib2.urlopen(request).read())
