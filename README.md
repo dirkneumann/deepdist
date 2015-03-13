@@ -31,7 +31,7 @@ with DeepDist(Word2Vec(corpus.collect()) as dd:
 How does it work?
 ----
 
-DeepDist implements a [Downpour](http://research.google.com/archive/large_deep_networks_nips2012.html)-like stochastic gradient descent. It start a master model server (on port 5000). On each data node, DeepDist fetches the model from the server, and then calls __gradient()__. After computing the gradient for each RDD partition, gradient updates are send to the server. On the server, the master model is then updated by __descent()__.
+DeepDist implements a [Downpour](http://research.google.com/archive/large_deep_networks_nips2012.html)-like stochastic gradient descent. It start a master model server (on port 5000). On each data node, DeepDist fetches the model from the server, and then calls __gradient()__. After computing the gradient for each RDD partition, gradient updates are sent to the server. On the server, the master model is then updated by __descent()__.
 
 ![Alt text](http://deepdist.com/images/deepdistdesign.png)
 
