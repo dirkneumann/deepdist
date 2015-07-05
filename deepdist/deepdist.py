@@ -22,7 +22,7 @@ class DeepDist:
         self.state    = 'serving'
         self.served   = 0
         self.received = 0
-        #self.server   = None
+        self.server   = '0.0.0.0'
         self.pmodel   = None
         self.min_updates = min_updates
         self.max_updates = max_updates
@@ -34,8 +34,9 @@ class DeepDist:
         return self
     
     def __exit__(self, type, value, traceback):
-        # self.server.terminate()
-        pass # need to shut down server here
+        url = "http://%s:5000/shutdown"%self.server
+        response = urllib2.urlopen(url, '{}').read()
+        print"exit performed"
         
     def start(self):
         from flask import Flask, request
@@ -91,6 +92,14 @@ class DeepDist:
             self.lock.release()
             return 'OK'
         
+        @app.route('/shutdown', methods=['POST'])
+        def shutdown():
+            func = request.environ.get('werkzeug.server.shutdown')
+            if func is None:
+                raise RuntimeError('Not running with the Werkzeug Server')
+            func()
+            return 'Server shutting down...'
+            
         print 'Listening to 0.0.0.0:5000...'
         app.run(host='0.0.0.0', debug=True, threaded=True, use_reloader=False)
 
