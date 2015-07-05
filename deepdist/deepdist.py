@@ -1,5 +1,6 @@
 import copy
 import cPickle as pickle
+import cloudpickle as pickleDumper
 from multiprocessing import Process
 from rwlock import RWLock
 import socket
@@ -61,7 +62,7 @@ class DeepDist:
                 self.lock.release()
                 self.lock.acquire_write()
                 if not self.pmodel:
-                    self.pmodel = pickle.dumps(self.model, -1)
+                    self.pmodel = pickleDumper.dumps(self.model, -1)
                 self.served += 1
                 pmodel = self.pmodel
                 self.lock.release()
@@ -131,6 +132,6 @@ def fetch_model(master='localhost:5000'):
 def send_gradient(gradient, master='localhost:5000'):
     if not gradient:
           return 'EMPTY'
-    request = urllib2.Request('http://%s/update' % master, pickle.dumps(gradient, -1),
+    request = urllib2.Request('http://%s/update' % master, pickleDumper.dumps(gradient, -1),
         headers={'Content-Type': 'application/deepdist'})
     return urllib2.urlopen(request).read()
