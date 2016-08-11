@@ -1,5 +1,6 @@
 import copy
 import cPickle as pickle
+import cloudpickle as pickleDumper
 from multiprocessing import Process
 from rwlock import RWLock
 import socket
@@ -22,7 +23,7 @@ class DeepDist:
         self.state    = 'serving'
         self.served   = 0
         self.received = 0
-        #self.server   = None
+        self.server   = '0.0.0.0'
         self.pmodel   = None
         self.min_updates = min_updates
         self.max_updates = max_updates
@@ -34,8 +35,9 @@ class DeepDist:
         return self
     
     def __exit__(self, type, value, traceback):
-        # self.server.terminate()
-        pass # need to shut down server here
+        url = "http://%s:5000/shutdown"%self.server
+        response = urllib2.urlopen(url, '{}').read()
+        print"exit performed"
         
     def start(self):
         from flask import Flask, request
@@ -60,7 +62,7 @@ class DeepDist:
                 self.lock.release()
                 self.lock.acquire_write()
                 if not self.pmodel:
-                    self.pmodel = pickle.dumps(self.model, -1)
+                    self.pmodel = pickleDumper.dumps(self.model, -1)
                 self.served += 1
                 pmodel = self.pmodel
                 self.lock.release()
@@ -91,6 +93,14 @@ class DeepDist:
             self.lock.release()
             return 'OK'
         
+        @app.route('/shutdown', methods=['POST'])
+        def shutdown():
+            func = request.environ.get('werkzeug.server.shutdown')
+            if func is None:
+                raise RuntimeError('Not running with the Werkzeug Server')
+            func()
+            return 'Server shutting down...'
+            
         print 'Listening to 0.0.0.0:5000...'
         app.run(host='0.0.0.0', debug=True, threaded=True, use_reloader=False)
 
@@ -122,6 +132,6 @@ def fetch_model(master='localhost:5000'):
 def send_gradient(gradient, master='localhost:5000'):
     if not gradient:
           return 'EMPTY'
-    request = urllib2.Request('http://%s/update' % master, pickle.dumps(gradient, -1),
+    request = urllib2.Request('http://%s/update' % master, pickleDumper.dumps(gradient, -1),
         headers={'Content-Type': 'application/deepdist'})
     return urllib2.urlopen(request).read()
