@@ -1,6 +1,9 @@
 import copy
 import cPickle as pickle
-import cloudpickle as pickleDumper
+try:
+    import cloudpickle as pickleDumper
+except:
+    import cPickle as pickleDumper
 from multiprocessing import Process
 from rwlock import RWLock
 import socket
