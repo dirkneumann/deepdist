@@ -36,12 +36,12 @@ class DeepDist:
         # self.server = Process(target=self.start)
         # self.server.start()
         return self
-    
+
     def __exit__(self, type, value, traceback):
-        url = "http://%s:5000/shutdown"%self.server
+        url = "http://%s/shutdown" % self.master
         response = urllib2.urlopen(url, '{}').read()
-        print"exit performed"
-        
+        print("Exit requested...")
+
     def start(self):
         from flask import Flask, request
 
