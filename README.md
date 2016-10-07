@@ -22,7 +22,7 @@ def descent(model, update):      # executes on master
     model.syn0 += update['syn0']
     model.syn1 += update['syn1']
 
-with DeepDist(Word2Vec(corpus.collect()) as dd:
+with DeepDist(Word2Vec(corpus.collect())) as dd:
 
     dd.train(corpus, gradient, descent)
     print dd.model.most_similar(positive=['woman', 'king'], negative=['man'])
